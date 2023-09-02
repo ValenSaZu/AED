@@ -1,2 +1,6 @@
 ﻿  BusquedaPalabras.cpp
-  BusquedaPalabras.vcxproj -> C:\Users\alumno-n415\source\repos\BusquedaPalabras\x64\Debug\BusquedaPalabras.exe
+C:\Users\51955\Documents\AED\BusquedaPalabras\BusquedaPalabras\BusquedaPalabras.cpp(27,31): warning C4553: "==": el resultado de la expresión no se usa. ¿Quiso decir "="?
+C:\Users\51955\Documents\AED\BusquedaPalabras\BusquedaPalabras\BusquedaPalabras.cpp(44,31): warning C4553: "==": el resultado de la expresión no se usa. ¿Quiso decir "="?
+C:\Users\51955\Documents\AED\BusquedaPalabras\BusquedaPalabras\BusquedaPalabras.cpp(61,31): warning C4553: "==": el resultado de la expresión no se usa. ¿Quiso decir "="?
+C:\Users\51955\Documents\AED\BusquedaPalabras\BusquedaPalabras\BusquedaPalabras.cpp(78,31): warning C4553: "==": el resultado de la expresión no se usa. ¿Quiso decir "="?
+  BusquedaPalabras.vcxproj -> C:\Users\51955\Documents\AED\BusquedaPalabras\x64\Debug\BusquedaPalabras.exe
