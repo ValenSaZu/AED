@@ -1,0 +1,92 @@
+#include <SFML/Graphics.hpp>
+#include <iostream>
+#include <vector>
+
+using namespace std;
+
+// Código de definición de Node y AVL...
+
+template <class T>
+void drawTree(sf::RenderWindow& window, Node<T>* node, float x, float y, float xOffset, float level, const sf::Font& font, const vector<Node<T>*>& primos, const vector<Node<T>*>& tios) {
+    if (!node) return;
+
+    sf::CircleShape circle(20.f);
+
+    // Cambia el color si el nodo es primo o tío
+    if (find(primos.begin(), primos.end(), node) != primos.end()) {
+        circle.setFillColor(sf::Color::Blue); // Color para primos
+    } else if (find(tios.begin(), tios.end(), node) != tios.end()) {
+        circle.setFillColor(sf::Color::Green); // Color para tios
+    } else {
+        circle.setFillColor(sf::Color::Black); // Color para otros nodos
+    }
+    
+    circle.setPosition(x, y);
+    window.draw(circle);
+
+    sf::Text text(std::to_string(node->val), font, 20);
+    text.setPosition(x + 8, y + 5);
+    window.draw(text);
+
+    if (node->left) {
+        sf::Vertex line[] = {
+            sf::Vertex(sf::Vector2f(x + 20, y + 20), sf::Color::Black),
+            sf::Vertex(sf::Vector2f(x - xOffset + 20, y + 80), sf::Color::Black)
+        };
+        window.draw(line, 2, sf::Lines);
+        drawTree(window, node->left, x - xOffset, y + 80, xOffset / 2, level + 1, font, primos, tios);
+    }
+
+    if (node->right) {
+        sf::Vertex line[] = {
+            sf::Vertex(sf::Vector2f(x + 20, y + 20), sf::Color::Black),
+            sf::Vertex(sf::Vector2f(x + xOffset + 20, y + 80), sf::Color::Black)
+        };
+        window.draw(line, 2, sf::Lines);
+        drawTree(window, node->right, x + xOffset, y + 80, xOffset / 2, level + 1, font, primos, tios);
+    }
+}
+
+int main() {
+    AVL<int> arbol;
+
+    sf::Font font;
+    if (!font.loadFromFile("C:/Users/Usuario/Downloads/Arial.ttf")) {
+        std::cerr << "Failed to load font." << std::endl;
+        return 1;
+    }
+
+    sf::RenderWindow window(sf::VideoMode(1280, 720), "AVL Tree");
+
+    vector<Node<int>*> primos, tios;
+
+    while (window.isOpen()) {
+        sf::Event event;
+        while (window.pollEvent(event)) {
+            if (event.type == sf::Event::Closed)
+                window.close();
+
+            if (event.type == sf::Event::KeyPressed) {
+                if (event.key.code == sf::Keyboard::A) {
+                    int value;
+                    std::cout << "Enter value to add: ";
+                    std::cin >> value;
+                    arbol.add(value);
+
+                    // Encuentra primos y tios del valor agregado
+                    primos.clear();
+                    tios.clear();
+                    arbol.Primos_Tios(value, primos, tios);
+                }
+            }
+        }
+
+        window.clear(sf::Color::White);
+
+        if (arbol.root) {
+            drawTree(window, arbol.root, 640, 50, 300, 1, font, primos, tios);
+        }
+
+        window.display();
+    }
+}
