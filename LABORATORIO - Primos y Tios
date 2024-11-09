@@ -1,0 +1,221 @@
+#include <SFML/Graphics.hpp>
+#include <iostream>
+#include <vector>
+
+using namespace std;
+
+template <class T>
+struct Node {
+    Node* left, * right;
+    T val;
+
+    Node(T v) {
+        this->val = v;
+        this->left = this->right = nullptr;
+    }
+};
+
+template <class T>
+struct AVL {
+    Node<T>* root;
+    vector<Node<T>*> camino;
+
+    AVL() : root(nullptr) {}
+
+    bool find(T value, Node<T>*& position) {
+        position = root;
+        camino.clear();
+        while (position) {
+            camino.push_back(position);
+            if (position->val > value) {
+                position = position->left;
+            }
+            else if (position->val < value) {
+                position = position->right;
+            }
+            else {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    int height(Node<T>* p) {
+        if (p == nullptr) {
+            return 0;
+        }
+        return 1 + max(height(p->left), height(p->right));
+    }
+
+    void leftRotate(Node<T>*& x) {
+        Node<T>* y = x->right;
+        x->right = y->left;
+        y->left = x;
+        x = y;
+    }
+
+    void rightRotate(Node<T>*& y) {
+        Node<T>* x = y->left;
+        y->left = x->right;
+        x->right = y;
+        y = x;
+    }
+
+    void Balance() {
+        for (int i = (camino.size() - 1); i >= 0; i--) {
+            int diferencia = height(camino[i]->right) - height(camino[i]->left);
+
+            if (diferencia == 2) {
+                if (height(camino[i]->right->left) > height(camino[i]->right->right)) {
+                    rightRotate(camino[i]->right);
+                }
+                leftRotate(camino[i]);
+            }
+            else if (diferencia == -2) {
+                if (height(camino[i]->left->right) > height(camino[i]->left->left)) {
+                    leftRotate(camino[i]->left);
+                }
+                rightRotate(camino[i]);
+            }
+            if (i == 0) {
+                root = camino[i];
+            }
+            else {
+                if (camino[i - 1]->left == camino[i]) {
+                    camino[i - 1]->left = camino[i];
+                }
+                else {
+                    camino[i - 1]->right = camino[i];
+                }
+            }
+        }
+    }
+
+    void add(T v) {
+        Node<T>* puntero;
+        if (!root) {
+            root = new Node<T>(v);
+            return;
+        }
+        if (!find(v, puntero)) {
+            Node<T>* newNode = new Node<T>(v);
+            Node<T>* parent = camino.back();
+            if (parent->val > v) parent->left = newNode;
+            else parent->right = newNode;
+            camino.push_back(newNode);
+            Balance();
+        }
+        else {
+            cout << "Este valor ya existe en el arbol" << endl;
+        }
+    }
+
+    void findTios(Node<T>* root, Node<T>* puntero, int altura, vector<Node<T>*>& tios) {
+        if (!root) return;
+        if (height(root) == altura && root != puntero) {
+            tios.push_back(root);
+        }
+        findTios(root->left, altura, tios);
+        findTios(root->right, altura, tios);
+    }
+
+    void Primos_Tios(T v, vector<Node<T>*> primos, vector<Node<T>*> tios) {
+        Node<T>* puntero;
+        if (find(v, puntero)) {
+            int padre = height(camino.back());
+            findTios(root, puntero, padre, tios);
+            for (int i{ 0 }; i < tios.size(); i++) {
+                if (tios[i]->right) {
+                    primos.push_back(tios[i]->right);
+                }
+                if (tios[i]->left) {
+                    primos.push_back(tios[i]->left);
+                }
+            }
+        }
+    }
+
+    void print(Node<T>* n) {
+        if (!n) return;
+        print(n->left);
+        cout << n->val << ": ";
+        if (n->left) cout << n->left->val << " ";
+        if (n->right) cout << n->right->val;
+        cout << endl;
+        print(n->right);
+    }
+
+    void print() {
+        print(root);
+    }
+};
+
+template <class T>
+void drawTree(sf::RenderWindow& window, Node<T>* node, float x, float y, float xOffset, float level, const sf::Font& font) {
+    if (!node) return;
+
+    sf::CircleShape circle(20.f);
+    circle.setFillColor(sf::Color::Black);
+    circle.setPosition(x, y);
+
+    window.draw(circle);
+
+    sf::Text text(std::to_string(node->val), font, 20);
+    text.setPosition(x + 8, y + 5);
+    window.draw(text);
+
+    if (node->left) {
+        sf::Vertex line[] = {
+            sf::Vertex(sf::Vector2f(x + 20, y + 20), sf::Color::Black),
+            sf::Vertex(sf::Vector2f(x - xOffset + 20, y + 80), sf::Color::Black)
+        };
+        window.draw(line, 2, sf::Lines);
+        drawTree(window, node->left, x - xOffset, y + 80, xOffset / 2, level + 1, font);
+    }
+
+    if (node->right) {
+        sf::Vertex line[] = {
+            sf::Vertex(sf::Vector2f(x + 20, y + 20), sf::Color::Black),
+            sf::Vertex(sf::Vector2f(x + xOffset + 20, y + 80), sf::Color::Black)
+        };
+        window.draw(line, 2, sf::Lines);
+        drawTree(window, node->right, x + xOffset, y + 80, xOffset / 2, level + 1, font);
+    }
+}
+
+int main() {
+    AVL<int> arbol;
+
+    sf::Font font;
+    if (!font.loadFromFile("C:/Users/Usuario/Downloads/Arial.ttf")) {
+        std::cerr << "Failed to load font." << std::endl;
+        return 1;
+    }
+
+    sf::RenderWindow window(sf::VideoMode(1280, 720), "AVL Tree");
+
+    while (window.isOpen()) {
+        sf::Event event;
+        while (window.pollEvent(event)) {
+            if (event.type == sf::Event::Closed)
+                window.close();
+
+            if (event.type == sf::Event::KeyPressed) {
+                if (event.key.code == sf::Keyboard::A) {
+                    int value;
+                    std::cout << "Enter value to add: ";
+                    std::cin >> value;
+                    arbol.add(value);
+                }
+            }
+        }
+
+        window.clear(sf::Color::White);
+
+        if (arbol.root) {
+            drawTree(window, arbol.root, 640, 50, 300, 1, font);
+        }
+
+        window.display();
+    }
+}
